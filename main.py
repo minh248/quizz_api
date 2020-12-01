@@ -44,7 +44,8 @@ def queryCate():
 def getQA():
     #query
     def queryQues(categoryId):
-        select = "SELECT * FROM question WHERE categoryId =" + str(categoryId) + " ORDER BY RAND() LIMIT 10;"
+        select = "SELECT * FROM question WHERE categoryId =" + str(categoryId) +\
+                 " ORDER BY RAND() LIMIT 10"
         cursor = conn.cursor()
         cursor.execute(select)
         r = cursor.fetchall()
