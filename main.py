@@ -85,24 +85,45 @@ def getQA():
 def json_example():
     # query
     def checkAns(questionId, submittedAnswer):
-        select = "SELECT * FROM answer" \
-                 " WHERE questionId =" + str(questionId) +\
-                 " AND answer = '"+str(submittedAnswer)+"'" +\
-                 " AND correct = 1"
+        select = "SELECT a.* FROM answer a " \
+                 " WHERE a.questionId =" + str(questionId) +\
+                 " AND a.answer = '"+str(submittedAnswer)+"'" +\
+                 " AND correct = 1" \
+                 " LIMIT 1;"
+        cursor = conn.cursor()
+        cursor.execute(select)
+        r = cursor.fetchall()
+        return r
+
+    def getQuestionCorrectAns(questionId):
+        select = "SELECT q.question, a.answer FROM answer a " \
+                 " INNER JOIN question q ON q.questionId = a.questionId" \
+                 " WHERE q.questionId =" + str(questionId) + \
+                 " AND correct = 1" \
+                 " LIMIT 1;"
         cursor = conn.cursor()
         cursor.execute(select)
         r = cursor.fetchall()
         return r
 
     data = request.get_json(force=True)
+
     result = []
 
     for d in data:
-        incorectQuestion = checkAns(d['questionId'], d['submittedAnswer'])
+        questionId = d['questionId']
+        submittedAnswer = d['submittedAnswer']
 
+        incorectQuestion = checkAns(questionId, submittedAnswer)
         if incorectQuestion:
-            result.append(incorectQuestion)
+            print("xxxxxxxxxxxxxxxxxxx")
+            questionAndCorrectAnswer = getQuestionCorrectAns(questionId)
+            result.append({
+                "question": questionAndCorrectAnswer[0][0],
+                "correctAnswer": questionAndCorrectAnswer[0][1]
+            })
 
+    print(result)
     return jsonify(result)
 
 
