@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, jsonify
+from flask_cors import cross_origin
 from flask_restful import Resource, Api
 import mysql.connector
 import os
@@ -16,7 +17,8 @@ else:
 
 
 # API 1
-@app.route('/category', methods =["GET", "POST"])
+@app.route('/api/v1/category', methods =["GET", "POST"])
+@cross_origin()
 def queryCate():
     #query
     def queryCate():
@@ -35,23 +37,25 @@ def queryCate():
         result.append(mydict)
     return jsonify(result)
 
+
 # API 2
-@app.route('/quizz', methods=["GET", "POST"])
+@app.route('/api/v1/quizz', methods=["GET", "POST"])
+@cross_origin()
 def getQA():
     #query
     def queryQues(categoryId):
-        select = "SELECT * FROM question WHERE categoryId =" + str(categoryId)
+        select = "SELECT * FROM question WHERE categoryId =" + str(categoryId) + " ORDER BY RAND() LIMIT 10;"
         cursor = conn.cursor()
         cursor.execute(select)
-        result = cursor.fetchall()
-        return result
+        r = cursor.fetchall()
+        return r
 
     def queryAns(questionId):
         select = "SELECT * FROM answer WHERE questionId =" + str(questionId)
         cursor = conn.cursor()
         cursor.execute(select)
-        result = cursor.fetchall()
-        return result
+        r = cursor.fetchall()
+        return r
 
     categoryId = request.args.get("categoryId")
 
@@ -71,6 +75,33 @@ def getQA():
             mydict["answers"].append(a[1])
 
         result.append(mydict)
+    return jsonify(result)
+
+
+# API 3
+@app.route('/api/v1/quizz/check', methods=["POST"])
+@cross_origin()
+def json_example():
+    # query
+    def checkAns(questionId, submittedAnswer):
+        select = "SELECT * FROM answer" \
+                 " WHERE questionId =" + str(questionId) +\
+                 " AND answer = '"+str(submittedAnswer)+"'" +\
+                 " AND correct = 1"
+        cursor = conn.cursor()
+        cursor.execute(select)
+        r = cursor.fetchall()
+        return r
+
+    data = request.get_json(force=True)
+    result = []
+
+    for d in data:
+        incorectQuestion = checkAns(d['questionId'], d['submittedAnswer'])
+
+        if incorectQuestion:
+            result.append(incorectQuestion)
+
     return jsonify(result)
 
 
