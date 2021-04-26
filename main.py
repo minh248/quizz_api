@@ -126,6 +126,7 @@ def json_example():
     print(result)
     return jsonify(result)
 
+# phuc oc cho
 
 if __name__ == '__main__':
    app.run(port=port, debug=True)
